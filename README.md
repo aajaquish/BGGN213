@@ -1,2 +1,2 @@
 # BGGN213
-Bioinformatics
+Bioinformatics in UCSD
