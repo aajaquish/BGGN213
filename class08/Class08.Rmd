@@ -1,0 +1,207 @@
+---
+title: "Machine Learning 1"
+author: 'Jaquish (PID: A59010386)'
+date: "10/22/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Clustering Methods
+
+Kmeans clustering in R is done with the 'kmeans()' function
+Here we makeup some data to test and learn with.
+
+```{r}
+tmp = c(rnorm(30, 3), rnorm(30,-3))
+#tmp
+data=cbind(x=tmp, y=rev(tmp))
+plot(data)
+```
+#Making a dataset, that subtracts three from the first half of first column then adds three to second half. Does the opposite to the second column by adding three to first half then subtracting in second half. cbind=columns and rbind=rows
+
+Run 'kmeans()' set k to 2 nstart 20. The thing with Kmeans is you have to tell it how many clusters you want.
+
+```{r}
+km=kmeans(data, center=2, nstart=20)
+km
+```
+
+>Q1 How many points are in each cluster?
+
+```{r}
+km$size
+```
+
+($ pulls out column of that name)
+
+>Q2 What 'componenet' of your result object details cluster assignment/membership? 
+
+```{r}
+km$cluster
+```
+
+
+>Q3 What 'coponent' of your result object details cluster center?
+
+```{r}
+km$centers
+```
+
+
+>Q4 Plot x colored by the kmeans cluster assignment and add cluster centers as blue points.
+```{r}
+plot(data, col=km$cluster)
+points(km$centers, col="blue", pch=15, cex=2)
+```
+
+
+
+#Hierarchial Clustering
+We will use the 'hclust()' function on the same data as before and see how this method works. 
+
+```{r}
+hc=hclust(dist(data))
+hc
+```
+
+
+hclust has a plot method
+
+```{r}
+plot(hc)
+```
+To find out membership vector, we need to "cut" the tree (dendrogram) and for this we 
+use the 'cutree()' function and tell it the height to cut it. 
+
+```{r}
+cutree(hc, h=7)
+```
+
+We can also use 'cutree()' and state the number of k clusters we want...
+If you don't know the height you can use kcutree to cut at a point. 
+
+```{r}
+grps=cutree(hc,k=2)
+```
+
+```{r}
+plot(data, col=grps)
+```
+
+# kmeans(x,centers?)
+# hclust(dist(x))
+
+#Principal Component Analysis (PCA)
+ Remove features dimensionally (remove x and y) and give it a first and second principal componenet that fits the data better. Principal componenets become the new axis.
+ Reduces dimensionality, useful for identifying groups or outliers.
+ PCA is a super useful analysis method when you have lots of dimensions in your data...
+
+Import the data from CSV file.
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names=1)
+```
+How many rows and cols?
+```{r}
+dim(x)
+```
+```{r}
+x
+```
+
+```{r}
+x[,-1]
+```
+```{r}
+rownames(x)=x[,1]
+x=x[,-1]
+x
+```
+
+```{r}
+barplot(as.matrix(x), col=rainbow(17), beside=TRUE)
+```
+```{r}
+mycols=rainbow(nrow(x))
+pairs(x,col=mycols, pch=16)
+```
+
+We will use the base R function for PCA. Which is called 'prcomp()' This function likes when the data is transposed.
+t() will transpose the data. Switch columns and rows.
+
+```{r}
+t(x)
+pca <- prcomp( t(x) )
+summary(pca)
+
+
+```
+
+```{r}
+plot(pca)
+```
+
+We can score plot (a.k.a. PCA plot). Basically of PC1 and PC2. Using attributes() will tell you the different componenets of the PCA function.
+
+```{r}
+attributes(pca)
+```
+
+We are after the pca$x 
+
+```{r}
+plot(pca$x[,1:2])
+text(pca$x[,1:2], labels=colnames(x))
+```
+
+
+We can also examine the PCA "loadings", which tell us how much the original variable contribute to each new PCA.
+
+```{r}
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+
+```
+
+##One more PCA for today
+
+```{r}
+url2 <- "https://tinyurl.com/expression-CSV"
+rna.data <- read.csv(url2, row.names=1)
+head(rna.data)
+```
+
+```{r}
+nrow(rna.data)
+```
+
+```{r}
+ncol(rna.data)
+```
+
+```{r}
+colnames(rna.data)
+```
+
+```{r}
+pca.rna=prcomp(t(rna.data), scale=TRUE)
+summary(pca.rna)
+```
+
+```{r}
+plot(pca.rna)
+```
+
+```{r}
+plot(pca.rna$x[,1:2])
+text(pca.rna$x[,1:2], labels=colnames(rna.data))
+```
+
+
