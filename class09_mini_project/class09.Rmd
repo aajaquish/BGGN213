@@ -1,0 +1,207 @@
+---
+title: "class09_mini_project"
+author: 'Jaquish (PID: A59010386)'
+date: "10/27/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+fna.data <- "WisconsinCancer.csv"
+wisc.df <- read.csv(fna.data, row.names=1)
+```
+
+
+```{r}
+# wisc.df
+```
+```{r}
+wisc.data <- wisc.df[,-1]
+```
+
+```{r}
+diagnosis <- as.factor(wisc.df$diagnosis)
+#diagnosis
+```
+
+>Q1. How many observations are in this dataset?
+
+```{r}
+nrow(wisc.data)
+```
+
+
+
+>Q2. How many of the observations have a malignant diagnosis?
+
+```{r}
+sum(diagnosis == "M")
+```
+
+```{r}
+table(diagnosis)
+```
+
+
+>Q3. How many variables/features in the data are suffixed with _mean?
+
+```{r}
+grep("_mean", colnames(wisc.data), value=TRUE)
+```
+
+
+```{r}
+length(grep("_mean", colnames(wisc.data), TRUE))
+```
+
+```{r}
+#colMeans(wisc.data)
+```
+
+```{r}
+#apply(wisc.data,2,sd)
+```
+
+```{r}
+wisc.pr <- prcomp( wisc.data, scale=TRUE)
+```
+
+```{r}
+summary(wisc.pr)
+```
+
+>Q4. From your results, what proportion of the original variance is captured by the first principal components (PC1)?
+
+The first PC1 captures 44% of the original variance.
+
+>Q5. How many principal components (PCs) are required to describe at least 70% of the original variance in the data?
+
+To get 70% you need to go up to PC3.
+
+>Q6. How many principal components (PCs) are required to describe at least 90% of the original variance in the data?
+
+To hit 90% you need PC7.
+
+>Q7. What stands out to you about this plot? Is it easy or difficult to understand? Why?
+
+Very messy and difficult to understand because there is just too much data.
+
+```{r}
+#biplot(wisc.pr)
+```
+
+>Q8. Generate a similar plot for principal components 1 and 3. What do you notice about these plots?
+
+They are much prettier and look pretty similar. The plot with 1 and 3 look to be tighter together because they cover a small variance.  
+
+```{r}
+plot(wisc.pr$x[,1:2], col= diagnosis, xlab = "PC1", ylab = "PC2")
+```
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[,3], col= diagnosis, xlab = "PC1", ylab = "PC3")
+```
+
+```{r}
+df <- as.data.frame(wisc.pr$x)
+df$diagnosis <- diagnosis
+library(ggplot2)
+```
+
+```{r}
+ggplot(df) + 
+  aes(PC1, PC2, col= diagnosis) + 
+  geom_point()
+```
+
+```{r}
+pr.var <- wisc.pr$sdev^2
+pr.var
+?head(pr.var)
+```
+
+```{r}
+pve <-  pr.var/ sum(pr.var)
+pve
+```
+
+```{r}
+plot(pve, xlab = "Principal Component", 
+     ylab = "Proportion of Variance Explained", 
+     ylim = c(0, 1), type = "o")
+```
+
+```{r}
+barplot(pve, ylab = "Precent of Variance Explained",
+     names.arg=paste0("PC",1:length(pve)), las=2, axes = FALSE)
+axis(2, at=pve, labels=round(pve,2)*100 )
+```
+
+Optional:
+```{r}
+#install.packages("factoextra")
+#library(factoextra)
+#fviz_eig(wisc.pr, addlabels = TRUE)
+```
+
+
+>Q9. For the first principal component, what is the component of the loading vector (i.e. wisc.pr$rotation[,1]) for the feature concave.points_mean?
+
+The concave.points_mean is -0.26. This value is the average of the downward curve PC1 took because of the distance from this point.  
+
+```{r}
+#wisc.pr$rotation[,1]
+```
+
+
+
+>Q10. What is the minimum number of principal components required to explain 80% of the variance of the data?
+
+You need 4 PC's to describe 80% of the variance.
+
+```{r}
+var <- summary(wisc.pr)
+sum(var$importance[3,] <0.8)
+```
+
+```{r}
+data.scaled <- scale(wisc.data)
+```
+
+```{r}
+data.dist <- dist(data.scaled)
+```
+
+```{r}
+#data.dist
+```
+
+```{r}
+wisc.hclust <- hclust(data.dist, "complete")
+```
+
+```{r}
+plot(wisc.hclust)
+abline( h=15, col="red", lty=2)
+```
+
+
+```{r}
+wisc.hclust.clusters <- cutree(wisc.hclust,k=5)
+table(wisc.hclust.clusters, diagnosis)
+```
+
+>Q12. Can you find a better cluster vs diagnoses match by cutting into a different number of clusters between 2 and 10?
+
+Cluster 5 seems to be good because there is a nice separation between the diagnoses of benign and malignant. 
+
+>Q13. Which method gives your favorite results for the same data.dist dataset? Explain your reasoning.
+
+I also like the ward.D2 because the groups look very clean and it builds it so the variance is minimized. This is similar to why I chose 5 clusters above because it groups them together into a single category best as possible. 
+
+```{r}
+wisc.hclust <- hclust(data.dist, "ward.D2")
+plot(wisc.hclust)
+```
+
