@@ -1,0 +1,58 @@
+---
+title: "Firstyearexam_jaquish"
+author: 'Jaquish (PID: A59010386)'
+date: "7/13/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+covid <- read.csv("covid19_variants.csv")
+#View(covid)
+```
+
+```{r}
+library(ggplot2)
+library(lubridate)
+library(dplyr)
+```
+
+```{r}
+#First, I will use lubridate to change the dates, currently written in number,
+#to be in a year month date word format.
+covid$date <- ymd(covid$date)
+```
+
+```{r}
+#Second, I will need to remove "Total" and "other" row as it will not be calculated in our final graph.
+#I can do this by using dplyr!
+new.covid1 <- filter(covid, variant_name != "Total")
+new.covid <- filter(new.covid1, variant_name != "Other")
+#View(new.covid)
+```
+
+```{r}
+# Now I should be able to put it all together to form a graph!
+ggplot(new.covid) + aes(x=date, y=percentage, color=variant_name) +
+geom_line() +
+labs(x="", y="Percentage of sequenced specimens", title="Covid-19 Variants in California")
+```
+
+```{r}
+# It looks like the dates are different, we somehow need to add more months in there...
+#New attempt to change dates so they have word months and are spaced by 1 month.
+#Can actually just do so by adding features to the axes in ggplot.
+ggplot(new.covid) + aes(x=date, y=percentage, color=variant_name) +
+geom_line() +
+labs(x="", y="Percentage of sequenced specimens", title="Covid-19 Variants in California") +
+scale_x_date(date_breaks = "1 month", date_labels = "%b%Y") +
+theme_bw() +
+theme(axis.text.x = element_text(angle=45, hjust=1))
+
+```
+
